@@ -1,0 +1,26 @@
+* {
+  box-sizing: border-box;
+}
+ 
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+ 
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+ 
+body {
+  font: 16px/145% system-ui, "Segoe UI", Roboto, sans-serif;
+  color: #2b2a26;
+  background: #fdfcf9;
+  -webkit-font-smoothing: antialiased;
+}
+ 
+a {
+  color: inherit;
+}
