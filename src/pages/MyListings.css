@@ -1,0 +1,25 @@
+﻿.my-listings-main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+.my-listings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.my-listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+.my-listing-card { display: flex; flex-direction: column; gap: 8px; }
+.my-listing-actions { display: flex; gap: 8px; }
+.btn-small {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  background: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  color: #222;
+  font-size: 0.9rem;
+}
+.btn-small:hover { background: #f5f5f5; }
+.btn-danger { color: #b00020; border-color: #b00020; }
+.btn-danger:hover { background: #fdecef; }

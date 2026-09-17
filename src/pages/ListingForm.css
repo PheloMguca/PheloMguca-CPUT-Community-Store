@@ -1,0 +1,24 @@
+﻿.form-main { max-width: 640px; margin: 0 auto; padding: 40px 24px 80px; }
+.listing-form { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+.listing-form label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: #333;
+  gap: 6px;
+}
+.listing-form input,
+.listing-form select,
+.listing-form textarea {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
