@@ -1,0 +1,36 @@
+﻿.dashboard-main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.stat-card {
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  background: #fafafa;
+}
+.stat-value { font-size: 1.8rem; font-weight: 700; margin: 0; }
+.stat-label { color: #666; margin: 4px 0 0; font-size: 0.9rem; }
+.dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 16px;
+}
+.dashboard-section-header h2 { margin: 0; }
+.view-all-link { color: #222; text-decoration: none; font-weight: 500; }
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
