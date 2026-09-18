@@ -52,9 +52,13 @@ export default function Home() {
 
           <div className="hero-categories">
             {categories.map((category) => (
-              <button key={category} type="button" className="category-pill">
+              <Link
+                key={category}
+                to={`/browse?category=${encodeURIComponent(category)}`}
+                className="category-pill"
+              >
                 {category}
-              </button>
+              </Link>
             ))}
           </div>
         </div>

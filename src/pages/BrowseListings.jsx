@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
@@ -6,7 +7,11 @@ import { listings, categories } from "../data/listings";
 import "./BrowseListings.css";
 
 export default function BrowseListings() {
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get("category");
+  const [activeCategory, setActiveCategory] = useState(
+    categories.includes(initialCategory) ? initialCategory : "All"
+  );
   const [search, setSearch] = useState("");
 
   const filtered = listings.filter((item) => {
