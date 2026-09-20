@@ -1,0 +1,32 @@
+export const flaggedListings = [
+  {
+    id: 101,
+    listingId: 2,
+    name: "TI-84 Plus Calculator",
+    vendor: "Phelo M.",
+    reason: "Possible counterfeit item",
+    reportedBy: "Liam N.",
+    date: "11 Sep 2026",
+    status: "Open",
+  },
+  {
+    id: 102,
+    listingId: 4,
+    name: "Weekly Meal Prep Box",
+    vendor: "Zanele P.",
+    reason: "Allergen info missing",
+    reportedBy: "Aisha K.",
+    date: "9 Sep 2026",
+    status: "Open",
+  },
+  {
+    id: 103,
+    listingId: 6,
+    name: "Calculus Early Transcendentals",
+    vendor: "Phelo M.",
+    reason: "Duplicate listing",
+    reportedBy: "Thabo S.",
+    date: "3 Sep 2026",
+    status: "Resolved",
+  },
+];
