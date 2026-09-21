@@ -22,6 +22,7 @@ export default function Header() {
 
       <nav className="header-nav">
         <Link to="/browse">Browse</Link>
+        <Link to="/reviews">Reviews</Link>
         <Link to="/bulletin">Bulletin</Link>
         <Link to="/vendor">Vendor</Link>
       </nav>
@@ -41,6 +42,9 @@ export default function Header() {
         </svg>
       </Link>
 
+      <Link to="/profile" className="header-profile">
+        Profile
+      </Link>
       <Link to="/auth" className="btn btn-pill btn-dark">
         Sign In
       </Link>
