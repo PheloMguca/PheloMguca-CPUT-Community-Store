@@ -1,0 +1,92 @@
+.payment-confirmation-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 60px 24px 80px;
+}
+
+.payment-confirmation-card {
+  max-width: 650px;
+  margin: 40px auto;
+  padding: 40px;
+  text-align: center;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.payment-confirmation-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.payment-confirmation-card h1 {
+  margin: 0 0 10px;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.payment-confirmation-card p {
+  margin: 0 0 20px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.payment-confirmation-details {
+  margin: 25px 0;
+  padding: 18px;
+  border-radius: 10px;
+  background: #fafafa;
+  text-align: left;
+}
+
+.payment-confirmation-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.payment-confirmation-row:last-child {
+  margin-bottom: 0;
+}
+
+.payment-confirmation-total {
+  font-weight: 700;
+  font-size: 1.1rem;
+  padding-top: 12px;
+  border-top: 1px solid #ddd;
+}
+
+.payment-confirmation-button {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 10px;
+  background: #222;
+  color: #fff;
+  border: 1px solid #222;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.payment-confirmation-button:hover {
+  background: #000;
+}
+
+@media (max-width: 768px) {
+  .payment-confirmation-main {
+    padding: 40px 16px 60px;
+  }
+
+  .payment-confirmation-card {
+    padding: 28px 20px;
+  }
+}
