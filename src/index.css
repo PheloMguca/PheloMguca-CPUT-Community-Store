@@ -24,3 +24,30 @@ body {
 a {
   color: inherit;
 }
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #fdfcf9;
+  color: #2b2a26;
+}
+
+.member-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+.member-main h1 {
+  font-size: 2rem;
+  margin: 0 0 8px;
+  color: #16324f;
+}
+
+.browse-subtitle {
+  color: #666;
+  margin: 0 0 24px;
+}

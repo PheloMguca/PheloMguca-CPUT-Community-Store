@@ -83,6 +83,17 @@
   display: flex;
 }
 
+.header-profile {
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  color: #2b2a26;
+}
+
+.header-profile:hover {
+  color: #b8763a;
+}
+
 .btn {
   border: none;
   cursor: pointer;
