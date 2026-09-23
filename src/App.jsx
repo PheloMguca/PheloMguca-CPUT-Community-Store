@@ -11,7 +11,14 @@ import Profile from "./pages/Profile";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import FlaggedListings from "./pages/admin/FlaggedListings";
+import Bulletin from "./pages/Bulletin";
+import CreateBulletinPost from "./pages/Createbulletinpost";
+  
 import "./App.css";
+
+
+// Placeholder for pages you haven't built yet — swap these out
+// for Browse, Bulletin, Vendor as you build them.
 
 function Placeholder({ label }) {
   return <div style={{ padding: 60, fontFamily: "sans-serif" }}>{label} page coming soon.</div>;
@@ -35,8 +42,9 @@ export default function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<ManageUsers />} />
         <Route path="/admin/flagged" element={<FlaggedListings />} />
-
-        <Route path="/bulletin" element={<Placeholder label="Community Bulletin" />} />
+         <Route path="/bulletin" element={<Bulletin />} />
+            <Route path="/bulletin/new" element={<CreateBulletinPost />} />
+     
         <Route path="/cart" element={<Placeholder label="Cart" />} />
       </Routes>
     </BrowserRouter>
