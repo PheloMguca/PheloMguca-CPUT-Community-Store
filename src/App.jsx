@@ -12,7 +12,13 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import FlaggedListings from "./pages/admin/FlaggedListings";
 import "./App.css";
+<<<<<<< Updated upstream
 
+=======
+import Bulletin from "./pages/Bulletin";
+// Placeholder for pages you haven't built yet — swap these out
+// for Browse, Bulletin, Vendor as you build them.
+>>>>>>> Stashed changes
 function Placeholder({ label }) {
   return <div style={{ padding: 60, fontFamily: "sans-serif" }}>{label} page coming soon.</div>;
 }
