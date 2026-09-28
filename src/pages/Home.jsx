@@ -5,7 +5,6 @@ import ProductCard from "../components/ProductCard";
 import "./Home.css";
 
 const categories = ["Textbooks", "Electronics", "Stationery", "Food & Meals", "Apparel"];
-
 const trustPoints = [
   { icon: "👥", label: "4 Campuses" },
   { icon: "🛡", label: "PayFast & SnapScan" },

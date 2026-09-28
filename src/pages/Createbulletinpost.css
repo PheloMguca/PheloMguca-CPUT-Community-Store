@@ -1,0 +1,95 @@
+.create-post-page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1.5rem;
+  color: #7a776d;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link:hover {
+  color: #b8763a;
+}
+
+.create-post-page h1 {
+  margin: 0 0 0.4rem;
+  font-size: 1.8rem;
+  color: #16324f;
+}
+
+.create-post-subtitle {
+  margin: 0 0 2rem;
+  color: #7a776d;
+}
+
+.create-post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #16324f;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  font-family: inherit;
+  font-weight: 400;
+  font-size: 0.95rem;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #d9d6cc;
+  background: #fdfcf9;
+  color: #2b2a26;
+  resize: vertical;
+}
+
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: #9a9689;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: #b8763a;
+}
+
+.form-error {
+  margin: 0;
+  color: #b3452c;
+  font-size: 0.88rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #16324f;
+  border: 1px solid #d9d6cc;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-outline:hover {
+  border-color: #16324f;
+}
