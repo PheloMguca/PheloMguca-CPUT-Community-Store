@@ -1,7 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "./Header.css";
 
 export default function Header() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Sign out failed:", error.message);
+      return;
+    }
+    navigate("/auth");
+  };
+
   return (
     <header className="site-header">
       <Link to="/" className="brand">
@@ -42,12 +56,26 @@ export default function Header() {
         </svg>
       </Link>
 
-      <Link to="/profile" className="header-profile">
-        Profile
-      </Link>
-      <Link to="/auth" className="btn btn-pill btn-dark">
-        Sign In
-      </Link>
+      {user && (
+        <Link to="/profile" className="header-profile">
+          Profile
+        </Link>
+      )}
+
+      {!loading &&
+        (user ? (
+          <button
+            type="button"
+            className="btn btn-pill btn-dark"
+            onClick={handleSignOut}
+          >
+            Sign Out
+          </button>
+        ) : (
+          <Link to="/auth" className="btn btn-pill btn-dark">
+            Sign In
+          </Link>
+        ))}
     </header>
   );
 }

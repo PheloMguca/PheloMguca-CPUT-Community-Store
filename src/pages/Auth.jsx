@@ -1,21 +1,120 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 import "./Auth.css";
 
 export default function Auth() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState("signin"); // "signin" | "create"
-  const [form, setForm] = useState({ fullName: "", email: "", password: "" });
+
+  const initialFormState = {
+    fullName: "",
+    email: "",
+    password: "",
+    role: "student",
+  };
+
+  const [form, setForm] = useState(initialFormState);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  // Clear messages and reset form state when mode changes
+  const switchTab = (newMode) => {
+    setMode(newMode);
+    setForm(initialFormState);
+    setErrorMessage("");
+    setSuccessMessage("");
+  };
+
+  // Reset form inputs when entering or returning to the Auth page
+  useEffect(() => {
+    setForm(initialFormState);
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Wire this up to your auth API/backend once it's ready.
-    console.log(mode === "signin" ? "Signing in with" : "Creating account with", form);
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      if (mode === "signin") {
+        // ========== SIGN IN ==========
+        const { data: authData, error: authError } =
+          await supabase.auth.signInWithPassword({
+            email: form.email,
+            password: form.password,
+          });
+
+        if (authError) throw authError;
+
+        // Fetch profile
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("role_id, full_name")
+          .eq("user_id", authData.user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        // Fetch role name
+        let roleName = "student";
+        if (profile?.role_id) {
+          const { data: roleData, error: roleError } = await supabase
+            .from("roles")
+            .select("role_name")
+            .eq("role_id", profile.role_id)
+            .maybeSingle();
+
+          if (!roleError && roleData) {
+            roleName = roleData.role_name.toLowerCase();
+          }
+        }
+
+        // Clear credentials & navigate based on role
+        setForm(initialFormState);
+
+        if (roleName === "vendor") {
+          navigate("/vendor");
+        } else if (roleName === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      } else {
+        // ========== CREATE ACCOUNT ==========
+        const { error } = await supabase.auth.signUp({
+          email: form.email,
+          password: form.password,
+          options: {
+            data: {
+              full_name: form.fullName,
+              role_name: form.role,
+            },
+          },
+        });
+
+        if (error) throw error;
+
+        // Reset form & prompt user to sign in
+        setForm(initialFormState);
+        setMode("signin");
+        setSuccessMessage("Account created successfully! You can now sign in.");
+      }
+    } catch (err) {
+      console.error("Auth Error:", err);
+      setErrorMessage(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,52 +127,66 @@ export default function Auth() {
             <button
               type="button"
               className={mode === "signin" ? "auth-tab active" : "auth-tab"}
-              onClick={() => setMode("signin")}
+              onClick={() => switchTab("signin")}
             >
               Sign In
             </button>
             <button
               type="button"
               className={mode === "create" ? "auth-tab active" : "auth-tab"}
-              onClick={() => setMode("create")}
+              onClick={() => switchTab("create")}
             >
               Create Account
             </button>
           </div>
 
-          {mode === "signin" ? (
-            <>
-              <h1 className="auth-heading">Welcome Back</h1>
-              <form onSubmit={handleSubmit} className="auth-form">
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
+          {errorMessage && <div className="auth-error">{errorMessage}</div>}
+          {successMessage && <div className="auth-success">{successMessage}</div>}
 
-                <label htmlFor="password">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                />
+          <form onSubmit={handleSubmit} className="auth-form" autoComplete="off">
+            {/* Hidden inputs to capture browser autofill hijacking */}
+            <input
+              type="text"
+              name="prevent_autofill_username"
+              id="prevent_autofill_username"
+              tabIndex="-1"
+              style={{ display: "none" }}
+              readOnly
+            />
+            <input
+              type="password"
+              name="prevent_autofill_password"
+              id="prevent_autofill_password"
+              tabIndex="-1"
+              style={{ display: "none" }}
+              readOnly
+            />
 
-                <button type="submit" className="auth-submit">
-                  Sign in
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <h1 className="auth-heading">Hello, Join The Community.</h1>
-              <form onSubmit={handleSubmit} className="auth-form">
+            {mode === "create" && (
+              <>
+                <div className="role-selection">
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="student"
+                      checked={form.role === "student"}
+                      onChange={handleChange}
+                    />
+                    Student
+                  </label>
+                  <label className="radio-label">
+                    <input
+                      type="radio"
+                      name="role"
+                      value="vendor"
+                      checked={form.role === "vendor"}
+                      onChange={handleChange}
+                    />
+                    Vendor
+                  </label>
+                </div>
+
                 <label htmlFor="fullName">Full Name</label>
                 <input
                   id="fullName"
@@ -81,35 +194,48 @@ export default function Auth() {
                   type="text"
                   value={form.fullName}
                   onChange={handleChange}
+                  placeholder="Enter your full name"
                   required
                 />
+              </>
+            )}
 
-                <label htmlFor="create-email">Email</label>
-                <input
-                  id="create-email"
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                />
+            <h1 className="auth-heading">
+              {mode === "signin" ? "Welcome Back" : "Hello, Join The Community."}
+            </h1>
 
-                <label htmlFor="create-password">Password</label>
-                <input
-                  id="create-password"
-                  name="password"
-                  type="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  required
-                />
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="new-password"
+              placeholder="Enter your email"
+              required
+            />
 
-                <button type="submit" className="auth-submit">
-                  Create account
-                </button>
-              </form>
-            </>
-          )}
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="new-password"
+              placeholder="Enter your password"
+              required
+            />
+
+            <button type="submit" className="auth-submit" disabled={loading}>
+              {loading
+                ? "Processing..."
+                : mode === "signin"
+                ? "Sign In"
+                : "Create account"}
+            </button>
+          </form>
         </div>
       </main>
 

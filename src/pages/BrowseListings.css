@@ -1,8 +1,13 @@
 ﻿.browse-main {
-  max-width: 1200px;
+  /* Expand the max-width so content uses more screen real estate */
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
-  padding: 40px 24px 80px;
+  padding: 40px 32px 80px;
+  box-sizing: border-box;
 }
+
+
 .browse-main h1 { font-size: 2rem; margin-bottom: 8px; }
 .browse-subtitle { color: #666; margin-bottom: 24px; }
 .browse-search {
@@ -17,7 +22,9 @@
 .browse-categories { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
 .browse-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
+  /* Allows cards to scale fluidly from 280px up to filling 3 or 4 columns */
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 28px;
+  width: 100%;
 }
 .browse-empty { grid-column: 1 / -1; text-align: center; color: #888; padding: 60px 0; }

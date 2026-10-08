@@ -1,36 +1,70 @@
-﻿.dashboard-main { max-width: 1200px; margin: 0 auto; padding: 40px 24px 80px; }
+﻿.dashboard-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .dashboard-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  gap: 16px;
+  margin-bottom: 2rem;
 }
+
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 16px;
-  margin-bottom: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
 }
+
 .stat-card {
-  padding: 20px;
-  border: 1px solid #eee;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #fafafa;
+  padding: 1.25rem;
+  text-align: center;
 }
-.stat-value { font-size: 1.8rem; font-weight: 700; margin: 0; }
-.stat-label { color: #666; margin: 4px 0 0; font-size: 0.9rem; }
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
 .dashboard-section-header {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 1rem;
 }
-.dashboard-section-header h2 { margin: 0; }
-.view-all-link { color: #222; text-decoration: none; font-weight: 500; }
+
+/* Fixes vertical card stacking */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.no-listings {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+}
+
+.dashboard-loading {
+  text-align: center;
+  padding: 5rem 1rem;
+  font-size: 1.1rem;
+  color: #4b5563;
 }
