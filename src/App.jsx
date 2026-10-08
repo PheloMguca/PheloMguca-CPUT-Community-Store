@@ -20,6 +20,10 @@ import FlaggedListings from "./pages/admin/FlaggedListings";
 
 import "./App.css";
 
+
+// Placeholder for pages you haven't built yet — swap these out
+// for Browse, Bulletin, Vendor as you build them.
+
 function Placeholder({ label }) {
   return (
     <div style={{ padding: 60, fontFamily: "sans-serif" }}>
