@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
 import "./PaymentConfirmation.css";
 
 export default function PaymentConfirmation() {
@@ -49,12 +49,12 @@ export default function PaymentConfirmation() {
 
           </div>
 
-          <button
-            className="payment-confirmation-button"
-            onClick={() => navigate("/shop")}
-          >
-            Continue Shopping
-          </button>
+         <button
+  className="payment-confirmation-button"
+  onClick={() => navigate("/")}
+>
+  Continue Shopping
+</button>
 
         </div>
 

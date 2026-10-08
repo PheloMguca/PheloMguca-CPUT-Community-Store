@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { supabase } from "../../supabaseClient";
 import "./Payment.css";
 
 export default function Payment() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const orderId = location.state?.orderId;
   const total = location.state?.total || 0;
 
+  const [paying, setPaying] = useState(false);
   const [form, setForm] = useState({
     cardName: "",
     cardNumber: "",
@@ -18,46 +21,67 @@ export default function Payment() {
   });
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handlePayment = (e) => {
+  const handlePayment = async (e) => {
     e.preventDefault();
+    setPaying(true);
+
+    // Card details are never sent anywhere. Payment is simulated.
+    const { error } = await supabase.rpc("confirm_payment", {
+      p_order_id: orderId,
+    });
+
+    setPaying(false);
+
+    if (error) {
+      console.error("Payment failed:", error.message);
+      alert("Payment failed: " + error.message);
+      return;
+    }
 
     navigate("/payment-confirmation", {
-      state: {
-        total,
-        paymentMethod: "Online Payment",
-      },
+      state: { orderId, total, paymentMethod: "Online Payment" },
     });
   };
+
+  if (!orderId) {
+    return (
+      <div className="page">
+        <Header />
+        <main className="payment-main">
+          <div className="payment-header">
+            <h1>No order to pay for</h1>
+            <p className="payment-subtitle">Please start from your cart.</p>
+            <button className="payment-button" onClick={() => navigate("/cart")}>
+              Go to Cart
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="page">
       <Header />
 
       <main className="payment-main">
-
         <div className="payment-header">
           <h1>Payment</h1>
-
           <p className="payment-subtitle">
             Enter your card details to complete your payment.
           </p>
         </div>
 
         <div className="payment-container">
-
           <form className="payment-card" onSubmit={handlePayment}>
-
             <h2>Card Details</h2>
 
             <div className="payment-form-group">
               <label>Cardholder Name</label>
-
               <input
                 type="text"
                 name="cardName"
@@ -70,7 +94,6 @@ export default function Payment() {
 
             <div className="payment-form-group">
               <label>Card Number</label>
-
               <input
                 type="text"
                 name="cardNumber"
@@ -83,10 +106,8 @@ export default function Payment() {
             </div>
 
             <div className="payment-form-row">
-
               <div className="payment-form-group">
                 <label>Expiry Date</label>
-
                 <input
                   type="text"
                   name="expiry"
@@ -100,7 +121,6 @@ export default function Payment() {
 
               <div className="payment-form-group">
                 <label>CVV</label>
-
                 <input
                   type="password"
                   name="cvv"
@@ -111,42 +131,32 @@ export default function Payment() {
                   required
                 />
               </div>
-
             </div>
 
             <div className="payment-summary">
-
               <div className="payment-summary-row">
                 <span>Payment Method</span>
                 <span>Online Payment</span>
               </div>
-
               <div className="payment-summary-total">
                 <span>Total</span>
                 <span>R{Number(total).toFixed(2)}</span>
               </div>
-
             </div>
 
-            <button
-              type="submit"
-              className="payment-button"
-            >
-              Pay R{Number(total).toFixed(2)}
+            <button type="submit" className="payment-button" disabled={paying}>
+              {paying ? "Processing..." : `Pay R${Number(total).toFixed(2)}`}
             </button>
 
             <button
               type="button"
               className="payment-back-button"
-              onClick={() => navigate("/checkout")}
+              onClick={() => navigate("/cart")}
             >
-              Back to Checkout
+              Back to Cart
             </button>
-
           </form>
-
         </div>
-
       </main>
 
       <Footer />

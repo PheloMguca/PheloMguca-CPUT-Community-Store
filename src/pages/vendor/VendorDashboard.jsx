@@ -23,7 +23,7 @@ export default function VendorDashboard() {
       try {
         setLoading(true);
 
-        // 1. Fetch vendor row from public.vendors table matching user_id
+        // 1. Fetch vendor row matching user_id
         const { data: vendorData, error: vendorError } = await supabase
           .from("vendors")
           .select("*")
@@ -36,16 +36,27 @@ export default function VendorDashboard() {
           setVendor(vendorData);
         }
 
-        // 2. Fetch listings for this vendor if a vendor_id exists
+        // 2. Fetch listings for this vendor
         if (vendorData?.vendor_id) {
           const { data: productData, error: productError } = await supabase
             .from("products")
-            .select("*")
-            .eq("vendor_id", vendorData.vendor_id);
+            .select("*, categories(category_name)")
+            .eq("vendor_id", vendorData.vendor_id)
+            .order("created_at", { ascending: false });
 
-          if (!productError && productData) {
-            setProducts(productData);
+          if (productError) {
+            console.error("Error fetching products:", productError.message);
+          } else {
+            console.log(
+              "vendor_id:",
+              vendorData.vendor_id,
+              "products:",
+              productData
+            );
+            setProducts(productData ?? []);
           }
+        } else {
+          console.log("No vendor row found for user:", user.id);
         }
       } catch (err) {
         console.error("Unexpected error loading dashboard:", err);
@@ -59,7 +70,6 @@ export default function VendorDashboard() {
     }
   }, [user, authLoading]);
 
-  // Loading state prevents white/blank screen flashes while fetching session
   if (authLoading || loading) {
     return (
       <div className="page">
@@ -72,12 +82,14 @@ export default function VendorDashboard() {
     );
   }
 
-  // Display name fallback chain
   const displayName =
     profile?.full_name || vendor?.business_name || user?.email || "Vendor";
 
   const stats = [
-    { label: "Active Listings", value: products.length },
+    {
+      label: "Active Listings",
+      value: products.filter((p) => p.status === "active").length,
+    },
     { label: "Items Sold", value: 0 },
     { label: "Revenue", value: "R0" },
     { label: "Avg Rating", value: "N/A" },
@@ -116,7 +128,12 @@ export default function VendorDashboard() {
         <div className="dashboard-grid">
           {products.length > 0 ? (
             products.slice(0, 4).map((item) => (
-              <ProductCard key={item.id || item.product_id} {...item} />
+              <ProductCard
+                key={item.product_id}
+                {...item}
+                category={item.categories?.category_name}
+                vendor={vendor?.business_name}
+              />
             ))
           ) : (
             <div className="no-listings">

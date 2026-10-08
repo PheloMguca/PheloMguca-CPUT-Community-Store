@@ -1,7 +1,9 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
+import { supabase } from "../supabaseClient";
 import "./Home.css";
 
 const categories = ["Textbooks", "Electronics", "Stationery", "Food & Meals", "Apparel"];
@@ -11,15 +13,27 @@ const trustPoints = [
   { icon: "♥", label: "Reviews & Ratings" },
 ];
 
-// Swap this for real listings once the backend is wired up.
-const featuredItems = [
-  { category: "Textbooks", name: "Intro to Networking, 6th Ed", price: "R320", rating: "4.8" },
-  { category: "Electronics", name: "TI-84 Plus Calculator", price: "R650", rating: "4.6" },
-  { category: "Stationery", name: "A4 Refill Pad, 5 Pack", price: "R95", rating: "4.9" },
-  { category: "Food & Meals", name: "Weekly Meal Prep Box", price: "R180", rating: "4.7" },
-];
-
 export default function Home() {
+  const [featuredItems, setFeaturedItems] = useState([]);
+
+  useEffect(() => {
+    async function loadFeatured() {
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, categories(category_name), vendor_public(business_name)")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(4);
+
+      if (error) {
+        console.error("Error loading featured items:", error.message);
+      } else {
+        setFeaturedItems(data ?? []);
+      }
+    }
+    loadFeatured();
+  }, []);
+
   return (
     <div className="page">
       <Header />
@@ -64,9 +78,17 @@ export default function Home() {
 
         <div className="hero-gallery">
           <div className="hero-gallery-grid">
-            {featuredItems.map((item) => (
-              <ProductCard key={item.name} {...item} />
-            ))}
+            {featuredItems.length === 0 ? (
+              <p className="browse-empty">No listings yet.</p>
+            ) : (
+              featuredItems.map((item) => (
+                <ProductCard
+                  key={item.product_id}
+                  {...item}
+                  category={item.categories?.category_name}
+                />
+              ))
+            )}
           </div>
           <Link to="/browse" className="view-all">
             View All →

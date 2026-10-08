@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
@@ -6,6 +7,7 @@ import "./Header.css";
 export default function Header() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [term, setTerm] = useState("");
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -14,6 +16,12 @@ export default function Header() {
       return;
     }
     navigate("/auth");
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = term.trim();
+    navigate(q ? `/browse?search=${encodeURIComponent(q)}` : "/browse");
   };
 
   return (
@@ -26,13 +34,18 @@ export default function Header() {
         </span>
       </Link>
 
-      <div className="header-search">
+      <form className="header-search" onSubmit={handleSearch}>
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
           <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <input type="text" placeholder="Search textbooks, electronics, vendors.." />
-      </div>
+        <input
+          type="text"
+          placeholder="Search textbooks, electronics, vendors.."
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+        />
+      </form>
 
       <nav className="header-nav">
         <Link to="/browse">Browse</Link>

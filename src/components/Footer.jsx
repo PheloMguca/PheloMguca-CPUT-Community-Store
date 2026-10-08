@@ -1,7 +1,17 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./Footer.css";
 
 export default function Footer() {
+  const navigate = useNavigate();
+  const [term, setTerm] = useState("");
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const q = term.trim();
+    navigate(q ? `/browse?search=${encodeURIComponent(q)}` : "/browse");
+  };
+
   return (
     <footer className="site-footer">
       <div className="footer-col">
@@ -23,13 +33,18 @@ export default function Footer() {
         <Link to="/admin">Admin Dashboard</Link>
       </div>
 
-      <div className="footer-search">
+      <form className="footer-search" onSubmit={handleSearch}>
         <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
           <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" strokeWidth="2" />
           <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
-        <input type="text" placeholder="Search textbooks, electronics, vendors.." />
-      </div>
+        <input
+          type="text"
+          placeholder="Search textbooks, electronics, vendors.."
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+        />
+      </form>
     </footer>
   );
 }

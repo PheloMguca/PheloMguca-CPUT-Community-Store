@@ -1,145 +1,116 @@
-import { useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import BulletinCard from "../components/BulletinCard";
 import "./Bulletin.css";
 
-const filterCategories = [
-  "All",
-  "Announcements",
-  "Lost & Found",
-  "Study Groups",
-  "Roommates",
-  "Events",
-  "General",
+const categories = [
+  { value: "All", label: "All" },
+  { value: "announcements", label: "Announcements" },
+  { value: "events", label: "Events" },
+  { value: "services", label: "Services" },
+  { value: "lost_and_found", label: "Lost & Found" },
 ];
 
-// Swap this for real posts once the backend is wired up.
-const bulletinPosts = [
-  {
-    id: 1,
-    category: "Lost & Found",
-    title: "Found: Black backpack near the library",
-    author: "Naledi M.",
-    date: "2 hours ago",
-    excerpt:
-      "Picked up a black Jansport backpack outside the main library entrance yesterday evening. Has a laptop and some notes inside. DM to claim.",
-    replies: 3,
-  },
-  {
-    id: 2,
-    category: "Study Groups",
-    title: "Forming a study group for COS 216 (Data Structures)",
-    author: "Thabo K.",
-    date: "5 hours ago",
-    excerpt:
-      "Looking for 3-4 people to meet twice a week ahead of the November exams. Library or online, whichever works for everyone.",
-    replies: 8,
-  },
-  {
-    id: 3,
-    category: "Roommates",
-    title: "Room available in 3-bed off-campus house, Hatfield",
-    author: "Aisha P.",
-    date: "1 day ago",
-    excerpt:
-      "One of our housemates is moving out end of the month. Furnished room, fibre wifi, 10 min walk to campus. R3200/month.",
-    replies: 5,
-  },
-  {
-    id: 4,
-    category: "Events",
-    title: "Campus Market Day this Saturday — vendors welcome",
-    author: "Student Council",
-    date: "1 day ago",
-    excerpt:
-      "Sign up your stall for Saturday's market day on the quad. Free tables for verified student vendors, first come first served.",
-    replies: 12,
-  },
-  {
-    id: 5,
-    category: "Announcements",
-    title: "Library extended hours during exam season",
-    author: "Campus Admin",
-    date: "2 days ago",
-    excerpt:
-      "The main library will be open until 1am from next week through the end of exams. Bring your student card.",
-    replies: 1,
-  },
-  {
-    id: 6,
-    category: "General",
-    title: "Anyone selling a mini fridge for res?",
-    author: "Kabelo S.",
-    date: "3 days ago",
-    excerpt: "Moving into res next semester and need a small fridge. Willing to collect on campus.",
-    replies: 4,
-  },
-];
+const labelFor = (value) =>
+  categories.find((c) => c.value === value)?.label ?? value;
 
-export default function CommunityBulletin() {
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [query, setQuery] = useState("");
+export default function Bulletin() {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const filteredPosts = useMemo(() => {
-    return bulletinPosts.filter((post) => {
-      const matchesCategory = activeCategory === "All" || post.category === activeCategory;
-      const matchesQuery =
-        query.trim() === "" ||
-        post.title.toLowerCase().includes(query.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(query.toLowerCase());
-      return matchesCategory && matchesQuery;
-    });
-  }, [activeCategory, query]);
+  useEffect(() => {
+    fetchBulletinPosts();
+  }, []);
+
+  async function fetchBulletinPosts() {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("bulletin_posts")
+        .select("*, profiles(full_name)")
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (err) {
+      console.error("Error fetching bulletin posts:", err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filteredPosts =
+    selectedCategory === "All"
+      ? posts
+      : posts.filter((post) => post.category === selectedCategory);
 
   return (
     <div className="page">
       <Header />
 
-      <main className="bulletin-page">
+      <main className="bulletin-main">
         <div className="bulletin-header">
           <div>
-            <h1>Community Bulletin</h1>
-            <p>Lost &amp; found, study groups, roommates and campus news — from students, for students.</p>
+            <h1>Campus Bulletin Board</h1>
+            <p className="bulletin-subtitle">
+              Stay updated with campus news, announcements, services, and events.
+            </p>
           </div>
-
-          <Link to="/bulletin/new" className="btn btn-pill btn-dark">
-            + New Post
+          <Link to="/bulletin/create" className="btn-create-post">
+            + Create Post
           </Link>
         </div>
 
-        <div className="bulletin-controls">
-          <input
-            type="text"
-            placeholder="Search posts..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="bulletin-search"
-          />
-
-          <div className="bulletin-filters">
-            {filterCategories.map((category) => (
-              <button
-                key={category}
-                type="button"
-                className={`category-pill${activeCategory === category ? " active" : ""}`}
-                onClick={() => setActiveCategory(category)}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
+        <div className="bulletin-categories">
+          {categories.map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              className={
+                selectedCategory === cat.value ? "category-chip active" : "category-chip"
+              }
+              onClick={() => setSelectedCategory(cat.value)}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
 
-        {filteredPosts.length > 0 ? (
-          <div className="bulletin-grid">
-            {filteredPosts.map((post) => (
-              <BulletinCard key={post.id} {...post} />
-            ))}
+        {loading ? (
+          <div className="bulletin-loading">Loading bulletin posts...</div>
+        ) : filteredPosts.length === 0 ? (
+          <div className="bulletin-empty">
+            <p>No posts found in this category.</p>
+            <Link to="/bulletin/create" className="link-action">
+              Be the first to post!
+            </Link>
           </div>
         ) : (
-          <p className="bulletin-empty">No posts match your search yet.</p>
+          <div className="bulletin-grid">
+            {filteredPosts.map((post) => (
+              <div key={post.post_id} className="bulletin-card">
+                <div className="bulletin-card-header">
+                  <span className="bulletin-tag">{labelFor(post.category)}</span>
+                  <span className="bulletin-date">
+                    {new Date(post.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+
+                <h3 className="bulletin-title">{post.title}</h3>
+                <p className="bulletin-content">{post.content}</p>
+
+                <div className="bulletin-card-footer">
+                  <span className="bulletin-author">
+                    Posted by {post.profiles?.full_name || "Campus Member"}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </main>
 

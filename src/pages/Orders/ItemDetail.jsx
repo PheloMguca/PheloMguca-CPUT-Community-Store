@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import { listings } from "../data/listings";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { listings } from "../../data/listings";
 import "./ItemDetail.css";
 
 export default function ItemDetail() {
@@ -29,7 +29,7 @@ export default function ItemDetail() {
 
             <button
               className="btn btn-pill btn-dark"
-              onClick={() => navigate("/shop")}
+              onClick={() => navigate("/")}
             >
               Back to Store
             </button>
@@ -77,7 +77,7 @@ export default function ItemDetail() {
         <div className="item-detail-header">
           <button
             className="back-link"
-            onClick={() => navigate("/shop")}
+            onClick={() => navigate("/")}
           >
             ← Back to Store
           </button>

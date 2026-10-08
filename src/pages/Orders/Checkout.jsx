@@ -1,16 +1,20 @@
-import { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Header from "../../components/Header";
+import Footer from "../../components/Footer";
+import { supabase } from "../../supabaseClient";
+import { useAuth } from "../../context/AuthContext";
 import "./Checkout.css";
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
 
-  const item = location.state?.item;
-  const quantity = location.state?.quantity || 1;
-
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [placing, setPlacing] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [notes, setNotes] = useState("");
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -20,87 +24,151 @@ export default function Checkout() {
     payment: "Pay at Collection",
   });
 
-  const [orderPlaced, setOrderPlaced] = useState(false);
+  useEffect(() => {
+    async function loadCart() {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
-  if (!item) {
+      const { data: cart } = await supabase
+        .from("cart")
+        .select("cart_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (cart) {
+        const { data, error } = await supabase
+          .from("cart_items")
+          .select("cart_item_id, quantity, products(product_name, price, status)")
+          .eq("cart_id", cart.cart_id)
+          .order("cart_item_id");
+
+        if (error) {
+          console.error("Error loading cart:", error.message);
+        } else {
+          setItems(
+            (data ?? [])
+              .filter((row) => row.products?.status === "active")
+              .map((row) => ({
+                id: row.cart_item_id,
+                name: row.products.product_name,
+                price: Number(row.products.price),
+                quantity: row.quantity,
+              }))
+          );
+        }
+      }
+      setLoading(false);
+    }
+
+    if (!authLoading) loadCart();
+  }, [user, authLoading]);
+
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const total = subtotal;
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handlePlaceOrder = async (e) => {
+    e.preventDefault();
+    setPlacing(true);
+
+    const paymentMethod = form.payment === "Online Payment" ? "payfast" : "cash";
+    const address = [
+      `Collection: ${form.campus}`,
+      `${form.firstName} ${form.lastName}`,
+      form.phone,
+      notes && `Notes: ${notes}`,
+    ]
+      .filter(Boolean)
+      .join(" | ");
+
+    const { data: orderId, error } = await supabase.rpc("place_order", {
+      p_shipping_address: address,
+      p_payment_method: paymentMethod,
+    });
+
+    setPlacing(false);
+
+    if (error) {
+      console.error("Place order failed:", error.message);
+      alert("Could not place order: " + error.message);
+      return;
+    }
+
+    if (paymentMethod === "payfast") {
+      navigate("/payment", { state: { orderId, total } });
+    } else {
+      setOrderPlaced(true);
+    }
+  };
+
+  if (authLoading || loading) {
     return (
       <div className="page">
         <Header />
-
         <main className="checkout-main">
-          <div className="order-confirmation">
-            <h1>No Order Found</h1>
-
-            <p>
-              There are no items available for checkout.
-              Please return to the store and select an item.
-            </p>
-
-            <button
-              className="return-store-button"
-              onClick={() => navigate("/shop")}
-            >
-              Back to Store
-            </button>
-          </div>
+          <p>Loading checkout...</p>
         </main>
-
         <Footer />
       </div>
     );
   }
 
-  const itemPrice = Number(item.price);
-  const subtotal = itemPrice * quantity;
-  const collectionFee = 0;
-  const total = subtotal + collectionFee;
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handlePlaceOrder = (e) => {
-    e.preventDefault();
-
-    setOrderPlaced(true);
-  };
+  if (!user) {
+    return (
+      <div className="page">
+        <Header />
+        <main className="checkout-main">
+          <div className="order-confirmation">
+            <h1>Please sign in</h1>
+            <p>Sign in to check out.</p>
+            <button className="return-store-button" onClick={() => navigate("/auth")}>
+              Sign In
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (orderPlaced) {
     return (
       <div className="page">
         <Header />
-
         <main className="checkout-main">
           <div className="order-confirmation">
-
-            <div className="order-confirmation-icon">
-              ✓
-            </div>
-
+            <div className="order-confirmation-icon">✓</div>
             <h1>Order Placed Successfully</h1>
-
-            <p>
-              Thank you for your order, {form.firstName}.
-              Your order for {item.name} has been received.
-            </p>
-
-            <p>
-              Collection: {form.campus}
-            </p>
-
-            <button
-              className="return-store-button"
-              onClick={() => navigate("/shop")}
-            >
+            <p>Thank you for your order, {form.firstName}. Your order has been received.</p>
+            <p>Collection: {form.campus}</p>
+            <button className="return-store-button" onClick={() => navigate("/browse")}>
               Continue Shopping
             </button>
-
           </div>
         </main>
+        <Footer />
+      </div>
+    );
+  }
 
+  if (items.length === 0) {
+    return (
+      <div className="page">
+        <Header />
+        <main className="checkout-main">
+          <div className="order-confirmation">
+            <h1>No Order Found</h1>
+            <p>There are no items available for checkout. Please add something to your cart first.</p>
+            <button className="return-store-button" onClick={() => navigate("/browse")}>
+              Back to Store
+            </button>
+          </div>
+        </main>
         <Footer />
       </div>
     );
@@ -111,318 +179,203 @@ export default function Checkout() {
       <Header />
 
       <main className="checkout-main">
-
-        {/* Checkout Header */}
         <div className="checkout-header">
           <h1>Checkout</h1>
-
-          <p className="checkout-subtitle">
-            Complete your details to place your order.
-          </p>
+          <p className="checkout-subtitle">Complete your details to place your order.</p>
         </div>
 
-        <div className="checkout-container">
+        <form onSubmit={handlePlaceOrder}>
+          <div className="checkout-container">
+            <section className="checkout-form-section">
+              <div className="checkout-card">
+                <h2>Customer Information</h2>
 
-          {/* Checkout Form */}
-          <section className="checkout-form-section">
+                <div className="checkout-form-row">
+                  <div className="checkout-form-group">
+                    <label>First Name</label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={form.firstName}
+                      onChange={handleChange}
+                      placeholder="Enter your first name"
+                      required
+                    />
+                  </div>
 
-            {/* Customer Information */}
-            <div className="checkout-card">
-
-              <h2>Customer Information</h2>
-
-              <div className="checkout-form-row">
+                  <div className="checkout-form-group">
+                    <label>Last Name</label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={form.lastName}
+                      onChange={handleChange}
+                      placeholder="Enter your last name"
+                      required
+                    />
+                  </div>
+                </div>
 
                 <div className="checkout-form-group">
-                  <label>First Name</label>
-
+                  <label>Email Address</label>
                   <input
-                    type="text"
-                    name="firstName"
-                    value={form.firstName}
+                    type="email"
+                    name="email"
+                    value={form.email}
                     onChange={handleChange}
-                    placeholder="Enter your first name"
+                    placeholder="Enter your email"
                     required
                   />
                 </div>
 
                 <div className="checkout-form-group">
-                  <label>Last Name</label>
-
+                  <label>Phone Number</label>
                   <input
-                    type="text"
-                    name="lastName"
-                    value={form.lastName}
+                    type="tel"
+                    name="phone"
+                    value={form.phone}
                     onChange={handleChange}
-                    placeholder="Enter your last name"
+                    placeholder="Enter your phone number"
                     required
                   />
                 </div>
-
               </div>
 
-              <div className="checkout-form-group">
-                <label>Email Address</label>
+              <div className="checkout-card">
+                <h2>Collection Method</h2>
 
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
+                <div className="checkout-options">
+                  <label className="checkout-option">
+                    <input
+                      type="radio"
+                      name="campus"
+                      value="District Six"
+                      checked={form.campus === "District Six"}
+                      onChange={handleChange}
+                    />
+                    <div className="checkout-option-content">
+                      <span className="checkout-option-title">CPUT District Six Campus</span>
+                      <span className="checkout-option-description">
+                        Collect your order from the CPUT Community Store.
+                      </span>
+                    </div>
+                  </label>
 
-              <div className="checkout-form-group">
-                <label>Phone Number</label>
-
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  required
-                />
-              </div>
-
-            </div>
-
-            {/* Collection Method */}
-            <div className="checkout-card">
-
-              <h2>Collection Method</h2>
-
-              <div className="checkout-options">
-
-                <label className="checkout-option">
-
-                  <input
-                    type="radio"
-                    name="campus"
-                    value="District Six"
-                    checked={form.campus === "District Six"}
-                    onChange={handleChange}
-                  />
-
-                  <div className="checkout-option-content">
-
-                    <span className="checkout-option-title">
-                      CPUT District Six Campus
-                    </span>
-
-                    <span className="checkout-option-description">
-                      Collect your order from the CPUT Community Store.
-                    </span>
-
-                  </div>
-
-                </label>
-
-                <label className="checkout-option">
-
-                  <input
-                    type="radio"
-                    name="campus"
-                    value="Bellville"
-                    checked={form.campus === "Bellville"}
-                    onChange={handleChange}
-                  />
-
-                  <div className="checkout-option-content">
-
-                    <span className="checkout-option-title">
-                      CPUT Bellville Campus
-                    </span>
-
-                    <span className="checkout-option-description">
-                      Collect your order from the selected campus.
-                    </span>
-
-                  </div>
-
-                </label>
-
-              </div>
-
-            </div>
-
-            {/* Payment Method */}
-            <div className="checkout-card">
-
-              <h2>Payment Method</h2>
-
-              <div className="payment-options">
-
-                <label className="payment-option">
-
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="Pay at Collection"
-                    checked={
-                      form.payment === "Pay at Collection"
-                    }
-                    onChange={handleChange}
-                  />
-
-                  <span>
-                    Pay at Collection
-                  </span>
-
-                </label>
-
-                <label className="payment-option">
-
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="Online Payment"
-                    checked={
-                      form.payment === "Online Payment"
-                    }
-                    onChange={handleChange}
-                  />
-
-                  <span>
-                    Online Payment
-                  </span>
-
-                </label>
-
-              </div>
-
-            </div>
-
-            {/* Additional Notes */}
-            <div className="checkout-card">
-
-              <h2>Additional Notes</h2>
-
-              <div className="checkout-form-group">
-
-                <label>
-                  Order Notes
-                </label>
-
-                <textarea
-                  placeholder="Add any additional information about your order..."
-                />
-
-              </div>
-
-            </div>
-
-          </section>
-
-          {/* Order Summary */}
-          <aside className="checkout-summary">
-
-            <h2>Order Summary</h2>
-
-            <div className="checkout-summary-items">
-
-              <div className="checkout-summary-item">
-
-                <div>
-
-                  <p className="checkout-summary-item-name">
-                    {item.name}
-                  </p>
-
-                  <span className="checkout-summary-item-quantity">
-                    Quantity: {quantity}
-                  </span>
-
+                  <label className="checkout-option">
+                    <input
+                      type="radio"
+                      name="campus"
+                      value="Bellville"
+                      checked={form.campus === "Bellville"}
+                      onChange={handleChange}
+                    />
+                    <div className="checkout-option-content">
+                      <span className="checkout-option-title">CPUT Bellville Campus</span>
+                      <span className="checkout-option-description">
+                        Collect your order from the selected campus.
+                      </span>
+                    </div>
+                  </label>
                 </div>
-
-                <p className="checkout-summary-item-price">
-                  R{subtotal.toFixed(2)}
-                </p>
-
               </div>
 
-            </div>
+              <div className="checkout-card">
+                <h2>Payment Method</h2>
 
-            <div className="checkout-summary-row">
+                <div className="payment-options">
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="Pay at Collection"
+                      checked={form.payment === "Pay at Collection"}
+                      onChange={handleChange}
+                    />
+                    <span>Pay at Collection</span>
+                  </label>
 
-              <span>
-                Subtotal
-              </span>
+                  <label className="payment-option">
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="Online Payment"
+                      checked={form.payment === "Online Payment"}
+                      onChange={handleChange}
+                    />
+                    <span>Online Payment</span>
+                  </label>
+                </div>
+              </div>
 
-              <span>
-                R{subtotal.toFixed(2)}
-              </span>
+              <div className="checkout-card">
+                <h2>Additional Notes</h2>
+                <div className="checkout-form-group">
+                  <label>Order Notes</label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add any additional information about your order..."
+                  />
+                </div>
+              </div>
+            </section>
 
-            </div>
+            <aside className="checkout-summary">
+              <h2>Order Summary</h2>
 
-            <div className="checkout-summary-row">
+              <div className="checkout-summary-items">
+                {items.map((item) => (
+                  <div key={item.id} className="checkout-summary-item">
+                    <div>
+                      <p className="checkout-summary-item-name">{item.name}</p>
+                      <span className="checkout-summary-item-quantity">
+                        Quantity: {item.quantity}
+                      </span>
+                    </div>
+                    <p className="checkout-summary-item-price">
+                      R{(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
 
-              <span>
-                Campus Collection
-              </span>
+              <div className="checkout-summary-row">
+                <span>Subtotal</span>
+                <span>R{subtotal.toFixed(2)}</span>
+              </div>
 
-              <span>
-                Free
-              </span>
+              <div className="checkout-summary-row">
+                <span>Campus Collection</span>
+                <span>Free</span>
+              </div>
 
-            </div>
+              <div className="checkout-summary-divider"></div>
 
-            <div className="checkout-summary-divider"></div>
+              <div className="checkout-total">
+                <span>Total</span>
+                <strong className="checkout-total-price">R{total.toFixed(2)}</strong>
+              </div>
 
-            <div className="checkout-total">
-
-              <span>
-                Total
-              </span>
-
-              <strong className="checkout-total-price">
-                R{total.toFixed(2)}
-              </strong>
-
-            </div>
-
-            {/* Place Order */}
-            <form onSubmit={handlePlaceOrder}>
-
-              <button
-                type="submit"
-                className="place-order-button"
-              >
-                Place Order
+              <button type="submit" className="place-order-button" disabled={placing}>
+                {placing ? "Placing order..." : "Place Order"}
               </button>
 
-            </form>
+              <button
+                type="button"
+                className="back-to-cart-button"
+                onClick={() => navigate("/cart")}
+              >
+                Back to Cart
+              </button>
 
-            <button
-              type="button"
-              className="back-to-cart-button"
-              onClick={() => navigate("/cart")}
-            >
-              Back to Cart
-            </button>
-
-            <div className="checkout-security">
-
-              <div className="checkout-security-item">
-                ✓ Secure checkout
+              <div className="checkout-security">
+                <div className="checkout-security-item">✓ Secure checkout</div>
+                <div className="checkout-security-item">✓ CPUT Community Store</div>
+                <div className="checkout-security-item">✓ Campus collection available</div>
               </div>
-
-              <div className="checkout-security-item">
-                ✓ CPUT Community Store
-              </div>
-
-              <div className="checkout-security-item">
-                ✓ Campus collection available
-              </div>
-
-            </div>
-
-          </aside>
-
-        </div>
-
+            </aside>
+          </div>
+        </form>
       </main>
 
       <Footer />

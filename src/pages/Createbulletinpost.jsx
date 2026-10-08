@@ -2,41 +2,63 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext";
 import "./CreateBulletinPost.css";
 
-const postCategories = [
-  "Announcements",
-  "Lost & Found",
-  "Study Groups",
-  "Roommates",
-  "Events",
-  "General",
+const categoryOptions = [
+  { value: "announcements", label: "Announcements" },
+  { value: "events", label: "Events" },
+  { value: "services", label: "Services" },
+  { value: "lost_and_found", label: "Lost & Found" },
 ];
 
 export default function CreateBulletinPost() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [form, setForm] = useState({
-    category: postCategories[0],
+    category: categoryOptions[0].value,
     title: "",
     excerpt: "",
   });
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!user) {
+      setError("Please sign in to post to the bulletin.");
+      return;
+    }
 
     if (!form.title.trim() || !form.excerpt.trim()) {
       setError("Please fill in both a title and a description.");
       return;
     }
 
-    // TODO: replace with a real POST request once the backend is wired up.
-    console.log("New bulletin post:", form);
+    setError("");
+    setSaving(true);
+
+    const { error: insertError } = await supabase.from("bulletin_posts").insert({
+      user_id: user.id,
+      category: form.category,
+      title: form.title.trim(),
+      content: form.excerpt.trim(),
+    });
+
+    setSaving(false);
+
+    if (insertError) {
+      console.error("Post failed:", insertError.message);
+      setError("Could not publish post: " + insertError.message);
+      return;
+    }
 
     navigate("/bulletin");
   };
@@ -52,16 +74,16 @@ export default function CreateBulletinPost() {
 
         <h1>New Bulletin Post</h1>
         <p className="create-post-subtitle">
-          Share a lost item, study group, room listing, or campus update with the community.
+          Share a lost item, service, event, or campus update with the community.
         </p>
 
         <form className="create-post-form" onSubmit={handleSubmit}>
           <label className="form-field">
             <span>Category</span>
             <select value={form.category} onChange={handleChange("category")}>
-              {postCategories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
+              {categoryOptions.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
                 </option>
               ))}
             </select>
@@ -93,8 +115,8 @@ export default function CreateBulletinPost() {
             <Link to="/bulletin" className="btn btn-pill btn-outline">
               Cancel
             </Link>
-            <button type="submit" className="btn btn-pill btn-dark">
-              Post to Bulletin
+            <button type="submit" className="btn btn-pill btn-dark" disabled={saving}>
+              {saving ? "Posting..." : "Post to Bulletin"}
             </button>
           </div>
         </form>

@@ -1,9 +1,13 @@
-.bulletin-page {
-  max-width: 1100px;
+/* Container */
+.bulletin-main {
+  max-width: 1300px;
+  width: 100%;
   margin: 0 auto;
   padding: 2.5rem 1.5rem 4rem;
+  box-sizing: border-box;
 }
 
+/* Header */
 .bulletin-header {
   display: flex;
   justify-content: space-between;
@@ -15,16 +19,34 @@
 
 .bulletin-header h1 {
   margin: 0 0 0.35rem;
-  font-size: 1.9rem;
+  font-size: 2rem;
+  font-weight: 700;
   color: #16324f;
 }
 
-.bulletin-header p {
+.bulletin-subtitle {
   margin: 0;
   color: #7a776d;
-  max-width: 46ch;
+  max-width: 50ch;
+  line-height: 1.5;
 }
 
+.btn-create-post {
+  background: #16324f;
+  color: #ffffff;
+  padding: 0.65rem 1.25rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.btn-create-post:hover {
+  background: #0f243a;
+}
+
+/* Controls & Search */
 .bulletin-controls {
   display: flex;
   flex-direction: column;
@@ -51,25 +73,109 @@
   border-color: #b8763a;
 }
 
-.bulletin-filters {
+/* Filter Chips */
+.bulletin-categories {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+  margin-bottom: 2rem;
 }
 
-/* Extends the .category-pill style already used on Home */
-.category-pill.active {
+.category-chip {
+  background: #fdfcf9;
+  border: 1px solid #d9d6cc;
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #2b2a26;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.category-chip:hover {
+  background: #f3f0e6;
+}
+
+.category-chip.active {
   background: #16324f;
   color: #fdfcf9;
   border-color: #16324f;
 }
 
+/* Grid & Cards */
 .bulletin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.1rem;
+  gap: 1.5rem;
 }
 
+.bulletin-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.bulletin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+}
+
+.bulletin-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.bulletin-tag {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.bulletin-date {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.bulletin-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #16324f;
+  margin: 0 0 0.5rem 0;
+}
+
+.bulletin-content {
+  font-size: 0.925rem;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+}
+
+.bulletin-card-footer {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 0.75rem;
+}
+
+.bulletin-author {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+/* Empty State */
 .bulletin-empty {
   color: #9a9689;
   text-align: center;
