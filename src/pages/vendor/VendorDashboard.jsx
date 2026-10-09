@@ -36,7 +36,7 @@ export default function VendorDashboard() {
           setVendor(vendorData);
         }
 
-        // 2. Fetch listings for this vendor with joined listing_images
+        // 2. Fetch active listings for this vendor
         if (vendorData?.vendor_id) {
           const { data: productData, error: productError } = await supabase
             .from("products")
@@ -46,21 +46,14 @@ export default function VendorDashboard() {
               listing_images ( image_id, image_url, is_primary )
             `)
             .eq("vendor_id", vendorData.vendor_id)
+            .neq("status", "removed") // Exclude soft-deleted items
             .order("created_at", { ascending: false });
 
           if (productError) {
             console.error("Error fetching products:", productError.message);
           } else {
-            console.log(
-              "vendor_id:",
-              vendorData.vendor_id,
-              "products:",
-              productData
-            );
             setProducts(productData ?? []);
           }
-        } else {
-          console.log("No vendor row found for user:", user.id);
         }
       } catch (err) {
         console.error("Unexpected error loading dashboard:", err);

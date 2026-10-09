@@ -31,6 +31,9 @@ import AdminListings from "./pages/admin/AdminListings";
 import AdminReviews from "./pages/admin/AdminReviews";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminFlags from "./pages/admin/AdminFlags";
+import ProductDetails from "./pages/ProductDetails";
+
+// Inside <Routes>:
 
 
 
@@ -46,6 +49,7 @@ export default function App() {
         <Route path="/browse" element={<BrowseListings />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/reviews" element={<Reviews />} />
+        <Route path="/product/:id" element={<ProductDetails />} />
 
         {/* Orders Routes */}
         <Route path="/cart" element={<ShoppingCart />} />

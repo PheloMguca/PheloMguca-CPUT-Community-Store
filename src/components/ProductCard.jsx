@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import "./ProductCard.css";
@@ -21,7 +22,7 @@ export default function ProductCard({
   const cardTitle = title || product_name;
   const vendorName = vendor || vendor_public?.business_name;
 
-  // Safely extract the image URL from all possible Supabase response shapes
+  // Safely extract image URL from all possible Supabase response shapes
   const resolvedDbImage = Array.isArray(listing_images)
     ? (listing_images.find((img) => img.is_primary)?.image_url ||
        listing_images[0]?.image_url ||
@@ -36,28 +37,41 @@ export default function ProductCard({
 
   const formattedPrice =
     typeof price === "string" ? price.replace(/^R\s*/i, "") : price;
-// Quick handler inside ProductCard or ProductDetails
-async function handleFlagProduct(productId) {
-  const reason = window.prompt("Why are you reporting this listing? (e.g., Scam, Inappropriate content, Prohibited item)");
-  if (!reason) return;
 
-  try {
-    const { error } = await supabase
-      .from("listing_flags")
-      .insert({
+  // Report Listing Handler
+  const handleFlagProduct = async (productId, e) => {
+    e.stopPropagation(); // Prevents navigating if card wrapper is clickable
+
+    if (!user) {
+      alert("Please sign in to report a listing.");
+      return;
+    }
+
+    const reason = window.prompt(
+      "Why are you reporting this listing? (e.g., Scam, Inappropriate content, Prohibited item)"
+    );
+    if (!reason || !reason.trim()) return;
+
+    try {
+      const { error } = await supabase.from("listing_flags").insert({
         product_id: productId,
-        flagged_by: user.id,
-        reason: reason,
-        status: "pending"
+        user_id: user.id, // Ensure database column matches (user_id)
+        reason: reason.trim(),
+        status: "open", // Matched to FlaggedListings.jsx default view
       });
 
-    if (error) throw error;
-    alert("Listing reported to campus admins for review.");
-  } catch (err) {
-    alert("Could not flag listing: " + err.message);
-  }
-}
-  const handleAddToCart = async () => {
+      if (error) throw error;
+      alert("Listing reported to campus admins for review.");
+    } catch (err) {
+      console.error("Flag error:", err.message);
+      alert("Could not report listing: " + err.message);
+    }
+  };
+
+  // Add to Cart Handler
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+
     if (!user) {
       alert("Please sign in to add items to your cart.");
       return;
@@ -114,36 +128,49 @@ async function handleFlagProduct(productId) {
 
   return (
     <div className="product-card">
-      <div className="product-card-image-wrapper">
-        {category && <span className="product-card-badge">{category}</span>}
-        <img
-          src={displayImage}
-          alt={cardTitle || "Product listing"}
-          className="product-card-image"
-        />
-      </div>
-
-      <div className="product-card-content">
-        <div className="product-card-header">
-          <p className="product-card-vendor">by {vendorName || "Campus Vendor"}</p>
-          <h3 className="product-card-title">{cardTitle || "Untitled Product"}</h3>
-        </div>
-
-        <div className="product-card-footer">
-          <div className="product-card-price-container">
-            <span className="product-card-currency">R</span>
-            <span className="product-card-price">{formattedPrice || "0"}</span>
-          </div>
-
+      <Link to={`/product/${cardId}`} style={{ textDecoration: "none", color: "inherit" }}>
+        <div className="product-card-image-wrapper">
+          {category && <span className="product-card-badge">{category}</span>}
+          
+          {/* Report Button overlay on top right of image */}
           <button
             type="button"
-            className="add-to-cart-btn"
-            onClick={handleAddToCart}
+            className="flag-card-btn"
+            title="Report this listing"
+            onClick={(e) => handleFlagProduct(cardId, e)}
           >
-            Add to Cart
+            🚩
           </button>
+
+          <img
+            src={displayImage}
+            alt={cardTitle || "Product listing"}
+            className="product-card-image"
+          />
         </div>
-      </div>
+
+        <div className="product-card-content">
+          <div className="product-card-header">
+            <p className="product-card-vendor">by {vendorName || "Campus Vendor"}</p>
+            <h3 className="product-card-title">{cardTitle || "Untitled Product"}</h3>
+          </div>
+
+          <div className="product-card-footer">
+            <div className="product-card-price-container">
+              <span className="product-card-currency">R</span>
+              <span className="product-card-price">{formattedPrice || "0"}</span>
+            </div>
+
+            <button
+              type="button"
+              className="add-to-cart-btn"
+              onClick={handleAddToCart}
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }

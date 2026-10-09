@@ -31,28 +31,29 @@ export default function BrowseListings() {
   }
 
   async function fetchProducts() {
-    try {
-      setLoading(true);
-  // Replace lines 36-44 in BrowseListings.jsx
-// Update the query in your Home / VendorDashboard component:
-const { data, error } = await supabase
-  .from("products")
-  .select(`
-    *,
-    categories ( category_name ),
-    vendors ( business_name ),
-    listing_images ( image_id, image_url, is_primary )
-  `)
-  .order("created_at", { ascending: false })
-  .limit(4);
-      if (error) throw error;
-      setProducts(data || []);
-    } catch (err) {
-      console.error("Error fetching products:", err.message);
-    } finally {
-      setLoading(false);
-    }
+  try {
+    setLoading(true);
+
+    // Filter out removed products so only active listings display on the storefront
+    const { data, error } = await supabase
+      .from("products")
+      .select(`
+        *,
+        categories ( category_name ),
+        vendors ( business_name ),
+        listing_images ( image_id, image_url, is_primary )
+      `)
+      .eq("status", "active") // <--- ADD THIS LINE
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    setProducts(data || []);
+  } catch (err) {
+    console.error("Error fetching products:", err.message);
+  } finally {
+    setLoading(false);
   }
+}
 
   // Filter products by search and category selection
   const filteredProducts = products.filter((product) => {
@@ -118,7 +119,6 @@ const { data, error } = await supabase
           <p className="browse-empty">No products found matching your criteria.</p>
         ) : (
           <div className="browse-grid">
-            {/* STEP 2: Pass listing_images down into each ProductCard */}
             {filteredProducts.map((product) => (
               <ProductCard
                 key={product.product_id}

@@ -5,7 +5,7 @@ import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
-import "./MyListings.css"; // ensure MyListings.css is also inside src/pages/
+import "./MyListings.css";
 
 export default function MyListings() {
   const { user } = useAuth();
@@ -35,7 +35,7 @@ export default function MyListings() {
 
       if (vendorError) throw vendorError;
 
-      // 2. Fetch products matching vendor_id (or user_id if stored directly)
+      // 2. Fetch active products matching vendor_id or user_id
       let query = supabase
         .from("products")
         .select(`
@@ -43,12 +43,12 @@ export default function MyListings() {
           categories ( category_name ),
           listing_images ( image_id, image_url, is_primary )
         `)
+        .neq("status", "removed") // Exclude soft-deleted products
         .order("created_at", { ascending: false });
 
       if (vendor?.vendor_id) {
         query = query.eq("vendor_id", vendor.vendor_id);
       } else {
-        // Fallback: if vendor record isn't linked yet, search by user_id directly
         query = query.eq("user_id", user.id);
       }
 
@@ -66,19 +66,20 @@ export default function MyListings() {
   }
 
   async function handleDeleteProduct(productId) {
-    if (!window.confirm("Are you sure you want to delete this listing?")) return;
+    if (!window.confirm("Are you sure you want to remove this listing?")) return;
 
     try {
+      // Soft delete by setting status = 'removed'
       const { error } = await supabase
         .from("products")
-        .delete()
+        .update({ status: "removed" })
         .eq("product_id", productId);
 
       if (error) throw error;
 
       setMyProducts((prev) => prev.filter((p) => p.product_id !== productId));
     } catch (err) {
-      alert("Could not delete listing: " + err.message);
+      alert("Could not remove listing: " + err.message);
     }
   }
 
@@ -106,7 +107,7 @@ export default function MyListings() {
           <p style={{ textAlign: "center", padding: "3rem", color: "#6b7280" }}>Loading your listings...</p>
         ) : myProducts.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", background: "#f9fafb", borderRadius: "12px" }}>
-            <p style={{ fontSize: "1.1rem", color: "#4b5563" }}>You haven't created any listings yet.</p>
+            <p style={{ fontSize: "1.1rem", color: "#4b5563" }}>You haven't created any active listings yet.</p>
             <Link to="/vendor/add-listing" style={{ color: "#16324f", fontWeight: "bold" }}>
               Publish your first listing →
             </Link>

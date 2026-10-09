@@ -18,13 +18,14 @@ export default function FlaggedListings() {
   const [loading, setLoading] = useState(true);
 
   const loadFlags = async () => {
-    // Replace line 19 in FlaggedListings.jsx:
-const { data, error } = await supabase
-  .from("listing_flags")
-  .select(
-    "flag_id, reason, description, status, created_at, products(product_name, vendor_public(business_name)), profiles!listing_flags_user_id_fkey(full_name)"
-  )
-  .order("created_at", { ascending: false });
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("listing_flags")
+      .select(
+        "flag_id, reason, description, status, created_at, products(product_name, vendor_public(business_name)), profiles!listing_flags_user_id_fkey(full_name)"
+      )
+      .order("created_at", { ascending: false });
+
     if (error) {
       console.error("Error loading flags:", error.message);
     } else {
@@ -47,18 +48,22 @@ const { data, error } = await supabase
       return;
     }
 
-    const { error } = await supabase.rpc("admin_resolve_flag", {
-      p_flag_id: flagId,
-      p_action: action,
-    });
+    try {
+      const { error } = await supabase.rpc("admin_resolve_flag", {
+        p_flag_id: Number(flagId),
+        p_action: action, // 'remove' or 'dismiss'
+      });
 
-    if (error) {
-      console.error("Resolve failed:", error.message);
-      alert("Could not update flag: " + error.message);
-      return;
+      if (error) throw error;
+
+      alert(action === "remove" ? "Listing deleted from store." : "Flag dismissed.");
+
+      // Refresh the table from Supabase immediately after resolving
+      await loadFlags();
+    } catch (err) {
+      console.error("Resolve failed:", err.message);
+      alert("Could not process request: " + err.message);
     }
-
-    await loadFlags();
   };
 
   return (

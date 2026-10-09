@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ShoppingBag } from "lucide-react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../context/AuthContext";
 import "./Header.css";
@@ -26,8 +27,8 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <Link to="/" className="brand">
-        <span className="brand-mark" aria-hidden="true" />
+      <Link className="brand" to="/">
+        <ShoppingBag className="brand-icon" size={28} />
         <span className="brand-text">
           <span className="brand-name">CPUT Community Store</span>
           <span className="brand-tagline">Verified Campus Marketplace</span>
