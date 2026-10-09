@@ -13,6 +13,11 @@ import ManageUsers from "./pages/admin/ManageUsers";
 import FlaggedListings from "./pages/admin/FlaggedListings";
 import Bulletin from "./pages/Bulletin";
 import CreateBulletinPost from "./pages/Createbulletinpost";
+import Checkout from "./pages/Orders/Checkout";
+import ItemDetail from "./pages/Orders/ItemDetail";
+import Payment from "./pages/Orders/Payment";
+import PaymentConfirmation from "./pages/Orders/PaymentConfirmation";
+import ShoppingCart from "./pages/Orders/ShoppingCart";
   
 import "./App.css";
 
@@ -45,7 +50,11 @@ export default function App() {
          <Route path="/bulletin" element={<Bulletin />} />
             <Route path="/bulletin/new" element={<CreateBulletinPost />} />
      
-        <Route path="/cart" element={<Placeholder label="Cart" />} />
+        <Route path="/cart" element={<Checkout />} />
+        <Route path="/cart/item/:id" element={<ItemDetail />} />
+        <Route path="/cart/payment" element={<Payment />} />
+        <Route path="/cart/payment/confirmation" element={<PaymentConfirmation />} />
+        <Route path="/cart/shopping" element={<ShoppingCart />} />
       </Routes>
     </BrowserRouter>
   );
