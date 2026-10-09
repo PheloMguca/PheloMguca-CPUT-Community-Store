@@ -36,11 +36,15 @@ export default function VendorDashboard() {
           setVendor(vendorData);
         }
 
-        // 2. Fetch listings for this vendor
+        // 2. Fetch listings for this vendor with joined listing_images
         if (vendorData?.vendor_id) {
           const { data: productData, error: productError } = await supabase
             .from("products")
-            .select("*, categories(category_name)")
+            .select(`
+              *,
+              categories ( category_name ),
+              listing_images ( image_id, image_url, is_primary )
+            `)
             .eq("vendor_id", vendorData.vendor_id)
             .order("created_at", { ascending: false });
 
@@ -88,7 +92,7 @@ export default function VendorDashboard() {
   const stats = [
     {
       label: "Active Listings",
-      value: products.filter((p) => p.status === "active").length,
+      value: products.filter((p) => p.status === "active" || !p.status).length,
     },
     { label: "Items Sold", value: 0 },
     { label: "Revenue", value: "R0" },
@@ -130,9 +134,12 @@ export default function VendorDashboard() {
             products.slice(0, 4).map((item) => (
               <ProductCard
                 key={item.product_id}
-                {...item}
+                product_id={item.product_id}
+                product_name={item.product_name}
+                price={item.price}
                 category={item.categories?.category_name}
                 vendor={vendor?.business_name}
+                listing_images={item.listing_images}
               />
             ))
           ) : (

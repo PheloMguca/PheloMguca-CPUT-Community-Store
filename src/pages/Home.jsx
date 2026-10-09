@@ -18,12 +18,17 @@ export default function Home() {
 
   useEffect(() => {
     async function loadFeatured() {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, categories(category_name), vendor_public(business_name)")
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(4);
+      // Update the query in your Home / VendorDashboard component:
+const { data, error } = await supabase
+  .from("products")
+  .select(`
+    *,
+    categories ( category_name ),
+    vendors ( business_name ),
+    listing_images ( image_id, image_url, is_primary )
+  `)
+  .order("created_at", { ascending: false })
+  .limit(4);
 
       if (error) {
         console.error("Error loading featured items:", error.message);

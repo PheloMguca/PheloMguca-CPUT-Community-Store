@@ -26,6 +26,13 @@ import VendorDashboard from "./pages/vendor/VendorDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
 import FlaggedListings from "./pages/admin/FlaggedListings";
+import AdminRoute from "./components/AdminRoute";
+import AdminListings from "./pages/admin/AdminListings";
+import AdminReviews from "./pages/admin/AdminReviews";
+import AdminSettings from "./pages/admin/AdminSettings";
+import AdminFlags from "./pages/admin/AdminFlags";
+
+
 
 import "./App.css";
 
@@ -57,10 +64,16 @@ export default function App() {
         <Route path="/vendor/add-listing" element={<AddListing />} />
         <Route path="/vendor/edit-listing/:id" element={<EditListing />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<ManageUsers />} />
-        <Route path="/admin/flagged" element={<FlaggedListings />} />
+        {/* Admin Routes (admins only) */}
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<ManageUsers />} />
+          <Route path="/admin/flagged" element={<FlaggedListings />} />
+          <Route path="/admin/listings" element={<AdminListings />} />
+          <Route path="/admin/reviews" element={<AdminReviews />} />
+          <Route path="/admin/settings" element={<AdminSettings />} />
+<Route path="/admin/flags" element={<AdminFlags />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

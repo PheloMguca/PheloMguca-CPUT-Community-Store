@@ -1,29 +1,106 @@
-.admin-nav {
+.admin-sidebar {
+  background: #16324f;
+  color: #e9edf2;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 0 0 28px;
-  padding: 4px;
-  background: #f1efe9;
-  border-radius: 999px;
-  width: fit-content;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-sizing: border-box;
 }
 
-.admin-nav-link {
-  padding: 10px 18px;
-  border-radius: 999px;
-  text-decoration: none;
-  color: #7a776d;
-  font-weight: 600;
-  font-size: 0.9rem;
+.admin-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 8px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.admin-nav-link.active {
+.admin-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: #fdfcf9;
   color: #16324f;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.2rem;
 }
 
-.admin-nav-link:hover:not(.active) {
+.admin-brand strong {
+  display: block;
+  color: #fff;
+  letter-spacing: 0.08em;
+  font-size: 1rem;
+}
+
+.admin-brand span {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: #9db0c4;
+}
+
+.admin-panel-label {
+  margin: 24px 8px 8px;
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  color: #7f95ac;
+}
+
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-menu a,
+.admin-sidebar-bottom a {
+  padding: 11px 14px;
+  border-radius: 10px;
+  color: #cfd9e4;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-menu a:hover,
+.admin-sidebar-bottom a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.admin-menu a.active {
+  background: #fdfcf9;
   color: #16324f;
+  font-weight: 700;
+}
+
+.admin-sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 860px) {
+  .admin-sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .admin-menu,
+  .admin-sidebar-bottom {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-sidebar-bottom {
+    margin-top: 16px;
+  }
 }

@@ -10,6 +10,8 @@ export default function AddListing() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     name: "",
     category_id: "",
@@ -29,8 +31,8 @@ export default function AddListing() {
       if (error) {
         console.error("Error loading categories:", error.message);
       } else {
-        setCategories(data);
-        setForm((f) => ({ ...f, category_id: data[0]?.category_id ?? "" }));
+        setCategories(data || []);
+        setForm((f) => ({ ...f, category_id: data?.[0]?.category_id ?? "" }));
       }
     }
     loadCategories();
@@ -40,39 +42,94 @@ export default function AddListing() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) {
-  alert("You need to be logged in to publish a listing.");
-  return;
-}
-
-    const { data: vendor, error: vendorError } = await supabase
-      .from("vendors")
-      .select("vendor_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (vendorError || !vendor) {
-      alert("Could not find your vendor account.");
+      alert("You need to be logged in to publish a listing.");
       return;
     }
 
-    const { error } = await supabase.from("products").insert({
-      vendor_id: vendor.vendor_id,
-      category_id: Number(form.category_id),
-      product_name: form.name,
-      description: form.description,
-      price: Number(form.price),
-      quantity: Number(form.stock),
-      condition: form.condition,
-    });
+    try {
+      setUploading(true);
 
-    if (error) {
-      console.error("Insert failed:", error.message);
-      alert("Could not publish listing: " + error.message);
-    } else {
+      // 1. Fetch Vendor Account
+      const { data: vendor, error: vendorError } = await supabase
+        .from("vendors")
+        .select("vendor_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (vendorError || !vendor) {
+        alert("Could not find your vendor account.");
+        setUploading(false);
+        return;
+      }
+
+      // 2. Insert Product into database & return created product_id
+      const { data: newProduct, error: productError } = await supabase
+        .from("products")
+        .insert({
+          vendor_id: vendor.vendor_id,
+          category_id: Number(form.category_id),
+          product_name: form.name,
+          description: form.description,
+          price: Number(form.price),
+          quantity: Number(form.stock),
+          condition: form.condition,
+        })
+        .select("product_id")
+        .single();
+
+      if (productError) {
+        throw new Error("Could not publish listing: " + productError.message);
+      }
+
+      // 3. Upload File to Storage and save URL record in listing_images
+      if (selectedFile && newProduct?.product_id) {
+        const fileExt = selectedFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+        const filePath = `listings/${fileName}`;
+
+        // Upload to Storage bucket 'listing-images'
+        const { error: storageError } = await supabase.storage
+          .from("listing-images")
+          .upload(filePath, selectedFile);
+
+        if (storageError) {
+          throw new Error("Image upload failed: " + storageError.message);
+        }
+
+        // Get Public URL
+        const { data: publicUrlData } = supabase.storage
+          .from("listing-images")
+          .getPublicUrl(filePath);
+
+        // Insert record into listing_images table
+        const { error: imageDbError } = await supabase
+          .from("listing_images")
+          .insert({
+            product_id: newProduct.product_id,
+            image_url: publicUrlData.publicUrl,
+            is_primary: true,
+          });
+
+        if (imageDbError) {
+          throw new Error("Could not save image record: " + imageDbError.message);
+        }
+      }
+
       navigate("/vendor/my-listings");
+    } catch (err) {
+      console.error("Submit error:", err);
+      alert(err.message || "An unexpected error occurred.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -135,16 +192,29 @@ export default function AddListing() {
           </label>
 
           <label>
+            Listing Image
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+            />
+          </label>
+
+          <label>
             Description
             <textarea name="description" rows="4" value={form.description} onChange={handleChange} />
           </label>
 
           <div className="form-actions">
-            <button type="button" className="btn-small" onClick={() => navigate("/vendor/my-listings")}>
+            <button
+              type="button"
+              className="btn-small"
+              onClick={() => navigate("/vendor/my-listings")}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn btn-pill btn-dark">
-              Publish Listing
+            <button type="submit" className="btn btn-pill btn-dark" disabled={uploading}>
+              {uploading ? "Publishing..." : "Publish Listing"}
             </button>
           </div>
         </form>

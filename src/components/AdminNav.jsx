@@ -1,25 +1,51 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
+import { supabase } from "../supabaseClient";
 import "./AdminNav.css";
 
-const links = [
-  { to: "/admin", label: "Overview", end: true },
-  { to: "/admin/users", label: "Manage Users" },
-  { to: "/admin/flagged", label: "Flagged Listings" },
-];
-
 export default function AdminNav() {
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
+
   return (
-    <nav className="admin-nav" aria-label="Admin">
-      {links.map((link) => (
-        <NavLink
-          key={link.to}
-          to={link.to}
-          end={link.end}
-          className={({ isActive }) => (isActive ? "admin-nav-link active" : "admin-nav-link")}
-        >
-          {link.label}
+    <aside className="admin-sidebar">
+      <div className="admin-brand">
+        <div className="admin-brand-icon">C</div>
+
+        <div>
+          <strong>CPUT</strong>
+          <span>COMMUNITY STORE</span>
+        </div>
+      </div>
+
+      <p className="admin-panel-label">ADMIN PANEL</p>
+
+      <nav className="admin-menu">
+        <NavLink to="/admin" end>
+          ◉ Dashboard
         </NavLink>
-      ))}
-    </nav>
+
+        <NavLink to="/admin/users">👥 Users</NavLink>
+
+        <NavLink to="/admin/listings">▣ Listings</NavLink>
+
+        <NavLink to="/admin/flagged">⚑ Flagged Listings</NavLink>
+
+        <NavLink to="/admin/reviews">★ Reviews</NavLink>
+
+        <NavLink to="/admin/settings">⚙ Settings</NavLink>
+      </nav>
+
+      <div className="admin-sidebar-bottom">
+        <Link to="/">↗ View Website</Link>
+
+        <Link to="/auth" onClick={handleLogout}>
+          ⇥ Logout
+        </Link>
+      </div>
+    </aside>
   );
 }
